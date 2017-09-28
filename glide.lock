@@ -1,0 +1,6 @@
+hash: 134c5350cfb7c96ff6d2d968d2f68909a7945b0540c4081c6ec30060006d9115
+updated: 2017-08-12T09:21:43.726856949+10:00
+imports:
+- name: github.com/VojtechVitek/go-trello
+  version: 4a7db23ac973c12e59e3c781b359005995bb3838
+testImports: []
