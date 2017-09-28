@@ -1,4 +1,10 @@
-package: .
+package: github.com/benrowe/trello-downloader
+homepage: http://benrowe.info
+license: MIT
+owners:
+- name: Ben Rowe
+  email: ben.rowe.83@gmail.com
+  homepage: http://benrowe.info
 import:
 - package: github.com/VojtechVitek/go-trello
   version: ~0.1.0
