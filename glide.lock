@@ -1,6 +1,8 @@
-hash: 134c5350cfb7c96ff6d2d968d2f68909a7945b0540c4081c6ec30060006d9115
-updated: 2017-08-12T09:21:43.726856949+10:00
+hash: 15519051fb382a3298aed1c095589db399313efc435c04854c4fa979fcb81e73
+updated: 2017-09-29T22:22:38.623932644+10:00
 imports:
+- name: github.com/joho/godotenv
+  version: a79fa1e548e2c689c241d10173efd51e5d689d5b
 - name: github.com/VojtechVitek/go-trello
   version: 4a7db23ac973c12e59e3c781b359005995bb3838
 testImports: []
