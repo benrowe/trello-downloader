@@ -5,5 +5,8 @@ go:
 - 1.9
 - tip
 
+before_script:
+  - cp .env.dist .env
+
 script:
   - go test
