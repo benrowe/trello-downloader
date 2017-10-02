@@ -24,6 +24,21 @@ type Webhook struct {
 	Active      bool   `json:"active"`
 }
 
+type label struct {
+	name    string
+	key     string
+	service *service
+}
+
+type service struct {
+	name string
+	urls struct {
+		search        string
+		add           string
+		requestUpdate string
+	}
+}
+
 func loadEnv() {
 	err := godotenv.Load()
 
