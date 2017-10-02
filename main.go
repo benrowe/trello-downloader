@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/VojtechVitek/go-trello"
+	"github.com/joho/godotenv"
 )
 
 // import "flag"
@@ -23,14 +24,24 @@ type Webhook struct {
 	Active      bool   `json:"active"`
 }
 
+func loadEnv() {
+	err := godotenv.Load()
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
+
+	loadEnv()
 
 	args := len(os.Args)
 	argument := os.Args[args-1]
 	fmt.Println(argument)
 
-	appKey := ""
-	token := ""
+	appKey := os.Getenv("TRELLO_APP_KEY")
+	token := os.Getenv("TRELLO_TOKEN")
 	trello, err := trello.NewAuthClient(appKey, &token)
 	if err != nil {
 		log.Fatal(err)
