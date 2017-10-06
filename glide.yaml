@@ -8,7 +8,5 @@ owners:
 import:
 - package: github.com/VojtechVitek/go-trello
   version: ~0.1.0
-- package: github.com/joho/godotenv
-  version: v1.2.0
 - package: github.com/spf13/viper
   version: v1.0.0

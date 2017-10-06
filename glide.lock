@@ -1,8 +1,6 @@
-hash: 8c116a52a551c271659497f2b96058de432ff17fa96cce36a0b0c83a9802db6e
-updated: 2017-10-06T18:47:11.507025562+11:00
+hash: dc321b0038fdd2db2ed696a259e1b4b80d32188d9de9892ad09f02a6858cbd61
+updated: 2017-10-06T18:48:02.03228845+11:00
 imports:
-- name: github.com/joho/godotenv
-  version: a79fa1e548e2c689c241d10173efd51e5d689d5b
 - name: github.com/spf13/viper
   version: 25b30aa063fc18e48662b86996252eabdcf2f0c7
 - name: github.com/VojtechVitek/go-trello
