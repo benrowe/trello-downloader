@@ -1,3 +1,5 @@
 vendor
 trello-downloader
 .env
+.vscode
+config.yml
