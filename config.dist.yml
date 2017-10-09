@@ -1,8 +1,8 @@
 # sample config file
 trello:
   api:
-    clientId: 
-    secret: 
+    appKey: 
+    token: 
   boardId: # id of th board you want to watch
   labels: # associate labels to download services
     movies: 
