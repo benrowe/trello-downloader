@@ -1,0 +1,25 @@
+# sample config file
+trello:
+  api:
+    clientId: 
+    secret: 
+  boardId: # id of th board you want to watch
+  labels: # associate labels to download services
+    movies: 
+      name: # trello label value
+      service: # download service key
+  listMapping: # List mappings to states
+    search: 
+    searching: 
+    downloading:
+    downloaded:
+webhooks: # the addess where external webhooks are sent to
+  external: 
+    baseUrl: http://127.0.0.1/
+downloadServices:
+  radarr: # service key (used under trello.labels.*.service)
+    label: Radarr
+    baseUrl: # base url to service
+  sonarr:
+    label: Sonarr
+    baseUrl: 
