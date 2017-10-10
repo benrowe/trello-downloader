@@ -1,15 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"strings"
 
 	"github.com/VojtechVitek/go-trello"
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 // import "flag"
@@ -24,28 +22,45 @@ type Webhook struct {
 	Active      bool   `json:"active"`
 }
 
-func loadEnv() {
-	err := godotenv.Load()
+// config interface
+type config interface {
+	GetString(string) string
+}
 
-	if err != nil {
-		panic(err)
-	}
+func loadConfiguration() config {
+	viper.SetConfigName("config")
+
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("config")
+
+	viper.ReadInConfig()
+
+	return viper.GetViper()
 }
 
 func main() {
+	// boot
+	config := loadConfiguration()
+	validateConfig(config)
 
-	loadEnv()
+	client := getTrello(config.GetString("trello.api.appKey"), config.GetString("trello.api.token"))
+	board := loadBoard(client, os.Getenv("TRELLO_APP_KEY"))
+	validateBoard(board)
 
-	args := len(os.Args)
-	argument := os.Args[args-1]
-	fmt.Println(argument)
+	go registerTrelloWebhook(board)
+	go registerServicesWebhook()
+	go handleTrelloWebhooks()
 
-	appKey := os.Getenv("TRELLO_APP_KEY")
-	token := os.Getenv("TRELLO_TOKEN")
-	trello, err := trello.NewAuthClient(appKey, &token)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// args := len(os.Args)
+	// argument := os.Args[args-1]
+	// fmt.Println(argument)
+
+	// appKey := os.Getenv("TRELLO_APP_KEY")
+	// token := os.Getenv("TRELLO_TOKEN")
+	// trello, err := trello.NewAuthClient(appKey, &token)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	// body, err := trello.Get("/webhooks")
 	// if err != nil {
@@ -59,29 +74,75 @@ func main() {
 
 	// fmt.Println(webhooks)
 
-	user, err := trello.Member("benrowe")
+	// user, err := trello.Member("benrowe")
 
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(user.FullName, user.Bio)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println(user.FullName, user.Bio)
 
-	boards, err := user.Boards()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// boards, err := user.Boards()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	board, err := findBoard(boards, argument)
+	// board, err := findBoard(boards, argument)
 
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(board)
-	registerTrelloWebHook(board.Id, trello)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(board)
+	// registerTrelloWebHook(board.Id, trello)
 
 	// go printBoard(board)
 	// go printBoard(board)
 	// fmt.Scanln()
+
+}
+
+func getTrello(appKey string, token string) trello.Client {
+	client, err := trello.NewAuthClient(appKey, &token)
+	if err != nil {
+		panic(err)
+	}
+	return *client
+}
+
+// validate that we have a valid config file
+func validateConfig(config config) {
+	// validate trello api details
+	if len(config.GetString("trello.api.appKey")) != 32 {
+		panic("config: trello.api.appKey invalid")
+	}
+
+	if len(config.GetString("trello.api.token")) != 64 {
+		panic("config: trello.api.token invalid")
+	}
+
+}
+
+func loadBoard(client trello.Client, boardId string) trello.Board {
+	board, err := client.Board(boardId)
+	if err != nil {
+		panic(err)
+	}
+	return *board
+}
+
+// validate the state of the board against the provided configuration
+func validateBoard(board trello.Board, config config) {
+
+}
+
+func registerTrelloWebhook(board trello.Board) {
+
+}
+
+func registerServicesWebhook() {
+
+}
+
+func handleTrelloWebhooks() {
 
 }
 
@@ -105,7 +166,7 @@ func printBoard(board trello.Board) {
 	}
 }
 
-func registerTrelloWebHook(boardId string, client *trello.Client) {
+/*func registerTrelloWebHook(boardId string, client *trello.Client) {
 	payload := url.Values{}
 	payload.Add("IDModel", boardId)
 	payload.Add("Description", "something")
@@ -128,7 +189,7 @@ func registerTrelloWebHook(boardId string, client *trello.Client) {
 
 	fmt.Println(newList.ID)
 
-}
+}*/
 
 func findBoard(boards []trello.Board, boardName string) (trello.Board, error) {
 	for i := range boards {
