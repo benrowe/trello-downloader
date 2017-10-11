@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/VojtechVitek/go-trello"
@@ -58,14 +57,16 @@ func main() {
 	// boot
 	config := loadConfiguration()
 	validateConfig(config)
+	services := getDownloadServices(config)
+	fmt.Println(services)
+	// client := getTrello(config.GetString("trello.api.appKey"), config.GetString("trello.api.token"))
+	// board := loadBoard(client, config.GetString("trello.boardID"))
 
-	client := getTrello(config.GetString("trello.api.appKey"), config.GetString("trello.api.token"))
-	board := loadBoard(client, os.Getenv("TRELLO_APP_KEY"))
-	validateBoard(board)
+	// validateBoard(board, config)
 
-	go registerTrelloWebhook(board)
-	go registerServicesWebhook()
-	go handleTrelloWebhooks()
+	// go registerTrelloWebhook(board)
+	// go registerServicesWebhook()
+	// go handleTrelloWebhooks()
 
 	// args := len(os.Args)
 	// argument := os.Args[args-1]
@@ -116,6 +117,17 @@ func main() {
 
 }
 
+// retrieve a list of all the available download services we might need to support
+func getDownloadServices(c config) map[string]downloadService {
+
+	services := map[string]downloadService{}
+	for key, value := range c.GetStringMap("downloadServices") {
+		fmt.Println(value)
+		services[key] = downloadService{}
+	}
+	return services
+}
+
 func getTrello(appKey string, token string) trello.Client {
 	client, err := trello.NewAuthClient(appKey, &token)
 	if err != nil {
@@ -134,11 +146,12 @@ func validateConfig(config config) {
 	if len(config.GetString("trello.api.token")) != 64 {
 		panic("config: trello.api.token invalid")
 	}
+	// make sure we have at least one label correctly registered
 
 }
 
-func loadBoard(client trello.Client, boardId string) trello.Board {
-	board, err := client.Board(boardId)
+func loadBoard(client trello.Client, boardID string) trello.Board {
+	board, err := client.Board(boardID)
 	if err != nil {
 		panic(err)
 	}
