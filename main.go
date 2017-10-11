@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/VojtechVitek/go-trello"
+	"github.com/benrowe/trello-downloader/url"
 	"github.com/spf13/viper"
 )
 
 // import "flag"
 
 // Webhook d
-type Webhook struct {
+type webhook struct {
 	client      *trello.Client
 	ID          string `json:"id"`
 	Description string `json:"description"`
@@ -22,9 +23,24 @@ type Webhook struct {
 	Active      bool   `json:"active"`
 }
 
+type downloadService struct {
+	label string
+	url   url.URL
+}
+
+type trelloLabel struct {
+	name    string
+	service downloadService
+}
+
+type internalWebhook struct {
+	baseURL url.URL
+}
+
 // config interface
 type config interface {
 	GetString(string) string
+	GetStringMap(key string) map[string]interface{}
 }
 
 func loadConfiguration() config {
