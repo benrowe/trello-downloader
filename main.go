@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/VojtechVitek/go-trello"
+	"github.com/benrowe/trello-downloader/services"
 	"github.com/benrowe/trello-downloader/url"
 	"github.com/spf13/viper"
 )
@@ -22,14 +23,9 @@ type webhook struct {
 	Active      bool   `json:"active"`
 }
 
-type downloadService struct {
-	label string
-	url   url.URL
-}
-
 type trelloLabel struct {
 	name    string
-	service downloadService
+	service services.Service
 }
 
 type internalWebhook struct {
@@ -40,6 +36,7 @@ type internalWebhook struct {
 type config interface {
 	GetString(string) string
 	GetStringMap(key string) map[string]interface{}
+	UnmarshalKey(key string, rawVal interface{}) error
 }
 
 func loadConfiguration() config {
@@ -118,16 +115,21 @@ func main() {
 }
 
 // retrieve a list of all the available download services we might need to support
-func getDownloadServices(c config) map[string]downloadService {
+func getDownloadServices(c config) map[string]services.Service {
 
-	services := map[string]downloadService{}
-	for key, value := range c.GetStringMap("downloadServices") {
-		fmt.Println(value)
-		services[key] = downloadService{}
+	s := map[string]services.Service{}
+
+	for key := range c.GetStringMap("downloadServices") {
+		d, err := services.Make(key, c.GetString("downloadServices."+key+".label"), c.GetString("downloadServices."+key+".baseUrl"))
+		if err == nil {
+			s[key] = d
+		}
+
 	}
-	return services
+	return s
 }
 
+// Get the trello client
 func getTrello(appKey string, token string) trello.Client {
 	client, err := trello.NewAuthClient(appKey, &token)
 	if err != nil {
