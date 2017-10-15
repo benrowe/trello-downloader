@@ -12,7 +12,7 @@ type Service struct {
 
 // String for debugging
 func (s Service) String() string {
-	return fmt.Sprintf("%v basUrl: %v", s.Name, s.baseURL)
+	return fmt.Sprintf("((%v basUrl: %v))", s.Name, s.baseURL)
 }
 
 // Make create a new instance of a service
@@ -28,10 +28,5 @@ func Make(service string, name string, url string) (Service, error) {
 	}
 	s.Name = name
 	s.baseURL = url
-	fmt.Println(s)
 	return s, nil
-}
-
-func (v *Service) DoSomething(value string) {
-	v.Name = value
 }
