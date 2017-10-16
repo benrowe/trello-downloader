@@ -197,31 +197,6 @@ func printBoard(board trello.Board) {
 	}
 }
 
-/*func registerTrelloWebHook(boardId string, client *trello.Client) {
-	payload := url.Values{}
-	payload.Add("IDModel", boardId)
-	payload.Add("Description", "something")
-	payload.Add("CallbackURL", "")
-	payload.Add("Active", "1")
-	// webhook := &Webhook{IDModel: "", Description: "", CallbackURL: "", Active: true}
-	// payload, _ := json.Marshal(payload)
-	// url.
-	fmt.Println(boardId)
-	body, err := client.Post("/webhooks", payload)
-	if err != nil {
-		panic(err)
-	}
-
-	newList := &Webhook{}
-
-	if err = json.Unmarshal(body, newList); err != nil {
-		panic(err)
-	}
-
-	fmt.Println(newList.ID)
-
-}*/
-
 func findBoard(boards []trello.Board, boardName string) (trello.Board, error) {
 	for i := range boards {
 		if strings.ToLower(boards[i].Name) == boardName {
