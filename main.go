@@ -7,7 +7,7 @@ import (
 
 	"github.com/VojtechVitek/go-trello"
 	"github.com/benrowe/trello-downloader/services"
-	"github.com/benrowe/trello-downloader/url"
+	u "github.com/benrowe/trello-downloader/url"
 	"github.com/spf13/viper"
 )
 
@@ -29,7 +29,7 @@ type trelloLabel struct {
 }
 
 type internalWebhook struct {
-	baseURL url.URL
+	baseURL u.URL
 }
 
 // config interface
