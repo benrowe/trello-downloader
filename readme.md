@@ -2,6 +2,8 @@
 
 Uses trello to manage state in the cloud for my download system
 
+List webhooks: https://api.trello.com/1/members/me/tokens?webhooks=true&key=[APPLICATION_KEY]&token=[USER_TOKEN]
+
 ## Process flow
 
 ### Startup
