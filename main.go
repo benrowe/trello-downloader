@@ -152,6 +152,7 @@ func validateConfig(config config) {
 
 }
 
+// retrieve an instance of the trello board
 func loadBoard(client trello.Client, boardID string) trello.Board {
 	board, err := client.Board(boardID)
 	if err != nil {
