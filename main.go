@@ -4,29 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
+	u "./url"
 	"github.com/VojtechVitek/go-trello"
 	"github.com/benrowe/trello-downloader/services"
-	u "github.com/benrowe/trello-downloader/url"
 	"github.com/spf13/viper"
 )
 
 // import "flag"
 
 // Webhook d
-type webhook struct {
-	client      *trello.Client
-	ID          string `json:"id"`
-	Description string `json:"description"`
-	IDModel     string `json:"idModel"`
-	CallbackURL string `json:"callbackUrl"`
-	Active      bool   `json:"active"`
-}
 
 type trelloLabel struct {
 	name    string
@@ -71,9 +64,6 @@ func extractLabelServices(b trello.Board, c config, s map[string]services.Servic
 
 func main() {
 	// boot
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-	end := make(chan bool)
 	config := loadConfiguration()
 	validateConfig(config)
 	services := getDownloadServices(config)
@@ -82,11 +72,17 @@ func main() {
 
 	validateBoard(board, config)
 
-	extractLabelServices(board, config, services)
+	labels := extractLabelServices(board, config, services)
 
-	var webhook webhook
+	var webhook Webhook
 
 	go registerTrelloWebhook(&webhook, board, client)
+	go registerServicesWebhook(labels)
+	go handleWebhookEvents()
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+	end := make(chan bool)
 	// handle signals
 	go func() {
 		sig := <-signalChannel
@@ -103,56 +99,6 @@ func main() {
 	}()
 	// force the application to end when this channel receives an update
 	<-end
-	// go registerServicesWebhook()
-	// go handleTrelloWebhooks()
-
-	// args := len(os.Args)
-	// argument := os.Args[args-1]
-	// fmt.Println(argument)
-
-	// appKey := os.Getenv("TRELLO_APP_KEY")
-	// token := os.Getenv("TRELLO_TOKEN")
-	// trello, err := trello.NewAuthClient(appKey, &token)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// body, err := trello.Get("/webhooks")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// var webhooks []Webhook
-	// err = json.Unmarshal(body, &webhooks)
-	// for i := range webhooks {
-	// 	webhooks[i].client = trello
-	// }
-
-	// fmt.Println(webhooks)
-
-	// user, err := trello.Member("benrowe")
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(user.FullName, user.Bio)
-
-	// boards, err := user.Boards()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// board, err := findBoard(boards, argument)
-
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(board)
-	// registerTrelloWebHook(board.Id, trello)
-
-	// go printBoard(board)
-	// go printBoard(board)
-	// fmt.Scanln()
-
 }
 
 // retrieve a list of all the available download services we might need to support
@@ -208,21 +154,20 @@ func validateBoard(board trello.Board, config config) {
 
 }
 
-func deleteWebhook(w webhook, t trello.Client) {
-	_, err := t.Delete("/webhooks/" + w.ID)
+func deleteWebhook(w Webhook, t trello.Client) {
+	err := w.Delete()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func registerTrelloWebhook(w *webhook, board trello.Board, t trello.Client) {
+func registerTrelloWebhook(w *Webhook, board trello.Board, t trello.Client) {
 	payload := url.Values{}
 	payload.Add("idModel", board.Id)
 	payload.Add("description", "something")
 	payload.Add("callbackURL", "http://benrowe.info/?a")
 	payload.Add("active", "1")
 	body, err := t.Post("/webhooks", payload)
-	fmt.Println(string(body))
 	if err != nil {
 		panic(err)
 	}
@@ -230,13 +175,35 @@ func registerTrelloWebhook(w *webhook, board trello.Board, t trello.Client) {
 	if err = json.Unmarshal(body, w); err != nil {
 		panic(err)
 	}
+	fmt.Println("registered trello webhook")
 }
 
-func registerServicesWebhook() {
+// register an event hook with each of the unique download services
+func registerServicesWebhook(labels map[string]trelloLabel) {
+	// var registered []string
+	// for labelName, label := range labels {
+	// 	if !stringInSlice(labelName, registered) {
+	// 		// _, ok := interface{}(label).(services.SupportsWebhookEvents)
+	// 		// if ok {
+	// 		// 	label.service.RegisterWebhook()
+	// 		// } else {
+	// 		// 	// have to result to polling the service
+	// 		// }
+	// 	}
+	// }
+}
+
+func handleWebhookEvents() {
+	http.HandleFunc("/trello", trelloWebhookHandler)
+	http.ListenAndServe(":26", nil)
+	// register a endpoint to handle trello update events + deligate that off to a specific handler
+
+	// handle events from each service + associated label + action
+	// forward those requests to the relevant service to be handled + a trello handler to update the state as necessary
 
 }
 
-func handleTrelloWebhooks() {
+func trelloWebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -268,4 +235,53 @@ func findBoard(boards []trello.Board, boardName string) (trello.Board, error) {
 	}
 	err := fmt.Errorf("unknown board")
 	return trello.Board{}, err
+}
+
+type Webhook struct {
+	client      *trello.Client
+	ID          string `json:"id"`
+	Description string `json:"description"`
+	IDModel     string `json:"idModel"`
+	CallbackURL string `json:"callbackUrl"`
+	Active      bool   `json:"active"`
+}
+
+// Delete delete webhook
+func (w *Webhook) Delete() error {
+	_, err := w.client.Delete("/webhooks/" + w.ID)
+	return err
+}
+
+// Save persist the webhook to trello
+func (w *Webhook) Save() error {
+	var active int
+	if w.Active {
+		active = 1
+	}
+	payload := url.Values{}
+	payload.Add("idModel", w.IDModel)
+	payload.Add("description", w.Description)
+	payload.Add("callbackUrl", w.CallbackURL)
+	payload.Add("active", string(active))
+
+	var error error
+
+	if w.ID != "" {
+		_, err := w.client.Put("/webhooks/"+w.ID, payload)
+		error = err
+	} else {
+		// create
+		_, err := w.client.Post("/webhooks", payload)
+		error = err
+	}
+	return error
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if a == b {
+			return true
+		}
+	}
+	return false
 }

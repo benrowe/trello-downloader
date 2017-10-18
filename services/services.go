@@ -10,6 +10,10 @@ type Service struct {
 	baseURL string
 }
 
+type SupportsWebhookEvents interface {
+	RegisterWebhook(url string) error
+}
+
 // String for debugging
 func (s Service) String() string {
 	return fmt.Sprintf("((%v basUrl: %v))", s.Name, s.baseURL)
