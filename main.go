@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -76,9 +77,10 @@ func main() {
 
 	var webhook Webhook
 
-	go registerTrelloWebhook(&webhook, board, client)
-	go registerServicesWebhook(labels)
 	go handleWebhookEvents()
+	fmt.Print(labels)
+	go registerTrelloWebhook(&webhook, board, client)
+	// go registerServicesWebhook(labels)
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
@@ -162,10 +164,11 @@ func deleteWebhook(w Webhook, t trello.Client) {
 }
 
 func registerTrelloWebhook(w *Webhook, board trello.Board, t trello.Client) {
+	// try to register the webhook
 	payload := url.Values{}
 	payload.Add("idModel", board.Id)
 	payload.Add("description", "something")
-	payload.Add("callbackURL", "http://benrowe.info/?a")
+	payload.Add("callbackURL", "http://1.129.106.234:2600/?a")
 	payload.Add("active", "1")
 	body, err := t.Post("/webhooks", payload)
 	if err != nil {
@@ -194,8 +197,9 @@ func registerServicesWebhook(labels map[string]trelloLabel) {
 }
 
 func handleWebhookEvents() {
-	http.HandleFunc("/trello", trelloWebhookHandler)
-	http.ListenAndServe(":26", nil)
+	fmt.Println("Starting web server")
+	http.HandleFunc("/", trelloWebhookHandler)
+	http.ListenAndServe(":2600", nil)
 	// register a endpoint to handle trello update events + deligate that off to a specific handler
 
 	// handle events from each service + associated label + action
@@ -204,7 +208,9 @@ func handleWebhookEvents() {
 }
 
 func trelloWebhookHandler(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println(r.URL)
+	body, _ := ioutil.ReadAll(r.Body)
+	fmt.Print(string(body))
 }
 
 func printBoard(board trello.Board) {
